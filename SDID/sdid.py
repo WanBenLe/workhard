@@ -1,6 +1,8 @@
 '''
 Copyright <2021> <Ben Wan: wanbenfighting@gmail.com>
 '''
+
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,20 +14,19 @@ import warnings
 warnings.simplefilter('ignore')
 cvxopt.solvers.options['show_progress'] = False
 
-
-# Synthetic Difference-in-Differences, Dmitry Arkhangelsky, NBER & AER, 2021
+# 在windows可能需要这么安装conda install -c conda-forge/label/gcc7 cvxopt
+# Synthetic Difference-in-Differences, Dmitry Arkhangelsky, NBER 2021,AER 2022?
 # 不想写注释了,中文的自己看这个https://www.shangyexinzhi.com/article/4890167.html
 
 def root_mean_squared_error(y_true, y_pred):
     return np.sqrt(mean_squared_error(y_true, y_pred))
 
 
-def est_omega(Y_c_pre, Y_t_pre, zeta=1):
-    Y_c_pre = Y_c_pre.T
+def est_omega(Y_c_pre1, Y_t_pre1, zeta=1):
+    Y_c_pre = Y_c_pre1.T
+    Y_t_pre = Y_t_pre1
     nrow = Y_c_pre.shape[0]
     ncol = Y_c_pre.shape[1]
-    assert nrow == Y_t_pre.shape[0], print(f'shape error! {nrow} != {Y_t_pre.shape[0]}')
-
     P = np.diag(np.concatenate([np.repeat(zeta, ncol), np.repeat(1 / nrow, nrow)]))
 
     q = np.zeros(ncol + nrow)
@@ -42,7 +43,6 @@ def est_omega(Y_c_pre, Y_t_pre, zeta=1):
 def est_lambda(Y_c_pre, Y_c_post, zeta=1):
     nrow = Y_c_pre.shape[0]
     ncol = Y_c_pre.shape[1]
-    assert nrow == Y_c_post.shape[0], print(f'shape error! {nrow} != {Y_c_post.shape[0]}')
     P = np.diag(np.concatenate([np.repeat(zeta, ncol), np.repeat(1 / nrow, nrow), np.array([1e-6])]))
     q = np.zeros(ncol + nrow + 1)
     A = np.concatenate([np.concatenate([Y_c_pre, np.diag(np.ones(nrow)), -np.ones([nrow, 1])], axis=1),
@@ -88,7 +88,7 @@ def sdid(Y, focal_time=30, w=np.array([]), plot='false'):
         plt.show()
         plt.close()
 
-        # 可以调整,也可以不调整,论文上来说可能不调整更好
+        # 论文上来说是不调整的
         adj = np.mean(a[:focal_time] - b[:focal_time])
         adja = a - adj
         # adj = 1
@@ -108,9 +108,9 @@ def sdid(Y, focal_time=30, w=np.array([]), plot='false'):
         profit_d = np.round(np.sum((b - a)[focal_time:]) / np.sum((a)[focal_time:]) * 100, 2)
         print(str(profit_d), '%不调整指标增幅')
 
-        print(root_mean_squared_error(contrl_pre - adj, tre_pre))
-        print(root_mean_squared_error(contrl_pre, tre_pre))
-    return Yhat_sdid, omega_hat, lambda_hat
+        print('RMSE1', root_mean_squared_error(contrl_pre - adj, tre_pre))
+        print('RMSE2', root_mean_squared_error(contrl_pre, tre_pre))
+    return Yhat_sdid[0][0], omega_hat, lambda_hat
 
 
 # placebo_se
@@ -135,5 +135,10 @@ def placebo_se(Y, omega_sdid, boot_n=100):
         # print(omega_boot)
         sdidf, d1, d2 = sdid(Y, focal_time=30, w=omega_boot)
         sdid_all.append(sdidf)
-    return ((boot_n - 1) / boot_n) ** 0.5 * np.std(sdid_all)
+    return np.sqrt(((boot_n - 1) / boot_n) ** 0.5 * np.std(sdid_all))
 
+
+Y = np.random.rand(11, 50) + 0.85 * np.random.randn(11, 50)
+Yhat_sdid, omega_hat, lambda_hat = sdid(Y, focal_time=30, w=np.array([]), plot='true')
+SE = np.sqrt(placebo_se(Y, omega_hat, boot_n=100))
+print('5%', Yhat_sdid - 1.95 * SE, 'mean', Yhat_sdid, '95%', Yhat_sdid + 1.95 * SE)
