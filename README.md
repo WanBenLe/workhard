@@ -1,7 +1,7 @@
 # workhard
 
 主文档
-markdown文档:markdown,学习记录\
+markdown文档:markdown,学习记录
 
 计量.因果推断相关:
 AB测试代码:python,AB测试常规情况下使用的代码\
@@ -28,7 +28,7 @@ rPCA-TrSAX:python,去偏PCA结合时间序列符号表示\
 信息熵计算:python,连续变量除了分箱也可以使用kd树计算\
 信用评分卡:python,IVWOE.SHAP相关\
 卡方分箱:python,变量分箱\
-熵权耦合协调胁迫:MATLAB,熵权法+耦合协调度等\
+熵权耦合协调胁迫:MATLAB,熵权法+耦合协调度等
 
 其它:
 leetcode:python,练习用\
