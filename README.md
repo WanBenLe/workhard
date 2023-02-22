@@ -3,7 +3,7 @@
 主文档
 markdown文档:markdown,学习记录
 
-计量.因果推断相关:
+计量.因果推断相关:\
 AB测试代码:python,AB测试常规情况下使用的代码\
 GMM-with Liu:python,有限错误识别的迭代GMM配合第一类错误比Lasso更优的SLOPE构造工具变量\
 DMLM:python,DML双机学习配合有效得分函数估计中介效应\
@@ -18,7 +18,7 @@ robust EBCI:python,参数不满足正态分布时提高可信区间平均覆盖�
 线性性检验:python,Terasvirta检验\
 逐步回归:python,逐步回归的调整
 
-模型算法相关:
+模型算法相关:\
 EM算法估计混合分布:MATLAB,EM算法估计潜分布\
 NelderMead优化:python,scipy同算法的numba重写\
 P3分布估计:MATLAB,极大似然估计相关\
@@ -30,5 +30,5 @@ rPCA-TrSAX:python,去偏PCA结合时间序列符号表示\
 卡方分箱:python,变量分箱\
 熵权耦合协调胁迫:MATLAB,熵权法+耦合协调度等
 
-其它:
+其它:\
 leetcode:python,练习用\
