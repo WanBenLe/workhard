@@ -5,7 +5,8 @@ markdown文档:markdown,学习记录
 
 计量.因果推断相关:\
 AB测试代码:python,AB测试常规情况下使用的代码\
-GMM-with Liu:python,有限错误识别的迭代GMM配合第一类错误比Lasso更优的SLOPE构造工具变量\
+DID平行趋势检验:python,使用最不利的矩不等式测试对DID中隐含PMF进行检验,识别平行趋势违反的情况\
+klevelSLOPE-MisSpecIterGMM-with Liu:python,有限错误识别的迭代GMM配合第一类错误比Lasso更优的SLOPE构造工具变量,使用k-level进行参数优化\
 DMLM:python,DML双机学习配合有效得分函数估计中介效应\
 SDID:python,结合SC在DID中给出时间和个体权重,使用安慰剂方法估计方差\
 p-hacking:python,使用单调性检验识别p值汇报中的操纵行为\
