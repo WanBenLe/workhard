@@ -36,8 +36,39 @@ $p(x)=\prod_{i=1}^np(s_n|s_1,...,s_{n-1})$
 
 1. 数据来源从高质量网页开始,并以此判断其它网页的质量,并剔除wiki文本数据
 
-2. 使用字节对编码BPE作为tokenizer但是阻止前者跨字符类别合并任何字节序列(空格除外)
-3. 跟GPT相比,LayerNorm移到了输入,最后的self-attn也加了额外的LayerNorm
-4. 缩放残差层$1/\sqrt{N}$​,N为残差层数量,词表扩到50257,句长扩到1024,batchsize扩到512
+2. 使用字节对编码BPE作为tokenizer但是阻止前者跨字符类别合并任何字节序列(就是1dog的数字和字母不能合出来,空格除外)
+
+   BPE:统计单个字符词频,最高的两个合并,剩下的剔除后重复,直到词表数量足够,可以压缩词表大小.
+
+3. 预规范化:跟GPT相比,LayerNorm移到了输入,最后的self-attn也加了额外的LayerNorm
+
+4. 修改后初始化:缩放残差层$1/\sqrt{N}$​,N为第N个残差层,词表扩到50257,句长扩到1024,batchsize扩到512
+
 5. 训练只有一阶段
+
 6. 为了帮助识别下游任务,给出prompt
+
+
+
+
+
+
+
+
+
+#### Language Models are Few-Shot Learners, Tom B. Brown
+省流:GPT3
+
+元学习里的上下文学习:使用预训练语言模型的文本输入作为任务规范的一种形式:给定NLP Instruct和/或任务的demo为条件,并进行预测即可完成任务的处理.对于足够大的Transformer架构而言,情景学习的能力可能也会因此提高,并在推理是给定的demo数量区分描述为:
+
+Few-Shot:上下文窗口里给尽可能多的demo
+
+One-Shot:只有一个demo
+
+Zero-Shot:只有NLP Instruct
+
+对于特定任务,GPT3不允许微调FT改变模型参数,只允许Few-Shot(FS)
+
+架构和GPT2基本一致,但是使用了密集/局部带状稀疏交替的attn
+
+生成使用的集束搜索,集束宽度为 4,长度惩罚为0.6
