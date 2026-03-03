@@ -55,7 +55,7 @@ class Fg_Lasso:
         vars = int((self.mem**2 + self.mem) / 2)
         x0 = [0.001] * vars  # 初始化参数——等权
         # 各个权重应该大于等于0的约束
-        bnds = eval("(0, None)," * vars)
+        bnds = eval("(None, None)," * vars)
         res = minimize(
             self.min_omega_gl,
             x0,
@@ -92,7 +92,6 @@ class Fg_Lasso:
         mat_gl = array_mat(para_set, i_shape)
         calc_mat = mat_gl
         row, col = diag_indices_from(calc_mat)
-        calc_mat[row, col] = 0
         # L1正则项可以CV出来,我摸鱼
         loss = (
             trace(mat_gl @ res_cov) - log(det(mat_gl)) + lambda_lasso * np.sum(calc_mat)
@@ -118,3 +117,4 @@ yall = rand(50, 100, 1)
 mdl = Fg_Lasso(xall, yall, 0.2)
 print(np.round(mdl.beta_fglasso, 4).reshape(-1))
 print(np.round(mdl.beta_fgls, 4).reshape(-1))
+
