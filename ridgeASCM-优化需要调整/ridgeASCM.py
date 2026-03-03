@@ -17,8 +17,7 @@ class PsmModel:
         data_period_1_p = self.data[self.data["spark"] == 1][["pid", "prob"]]
         data_period_1_n = self.data[self.data["spark"] == 0][["pid", "prob"]]
 
-        data_period_1_p["prob"] = minmax_scale(data_period_1_p["prob"])
-        data_period_1_n["prob"] = minmax_scale(data_period_1_n["prob"])
+
         data_p = data_period_1_p.values
         data_n = data_period_1_n.values
         self.data_p = data_p[np.argsort(-data_p[:, 1])]
@@ -212,4 +211,5 @@ n_1 = psm_period_1.df_n_ind[
 result1 = ScmEst(p_0, n_0, disp=1)
 
 result2 = ridgeASCMfit(p_0, n_0, p_1, n_1)
+
 
