@@ -75,7 +75,7 @@ def DMLM(data, K=10):
     var_est = np.mean(ES_all ** 2)
     stat = fit_effect * n ** 0.5 / var_est
     p = 2 * norm.sf(np.abs(stat))
-    ci95 = 1.65 * var_est ** 0.5
+    ci95 = 1.96 * var_est ** 0.5
 
     print('DML中介效应统计检验量和p值', stat, p)
     print('Y(T,M(1-T))的效应估计结果')
@@ -100,3 +100,4 @@ data[:, 2] = data[:, 2].astype(int)
 DMLM(data, K)
 print(1)
 print(1)
+
