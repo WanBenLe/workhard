@@ -9,7 +9,6 @@ from numpy.random import choice
 from copy import deepcopy
 from numba.typed import List
 
-
 @jit()
 def ZScoreCatCon(data, rank):
     xx = 0
@@ -113,24 +112,77 @@ def Edis(mat):
     return dis_mat
 
 
-# 求马氏距离
-@jit()
-def mdis(data_new, data_merge):
-    meanx = meanAxis(data_merge)
-    data_new -= meanx
-    A = np.cov(data_merge.T)
-    try:
-        B = np.linalg.inv(A)
-        D2 = (data_new @ B @ data_new.transpose()) / 100
-    except:
-        B = np.linalg.pinv(A)
-        D2 = (data_new @ B @ data_new.transpose()) / 100
-    # except这部分,不属于马氏距离的,一般来说要去掉
-    if D2 < 0:
-        B = np.linalg.pinv(A)
-        D2 = (data_new @ B @ data_new.transpose()) / 100
-    return D2
 
+
+@jit(nopython=True, fastmath=True)
+def rmt_nonlinear_shrinkage(X):
+    """
+    非线性缩减 (Non-linear Shrinkage) - 随机矩阵理论 (RMT) 版
+    核心逻辑：通过希尔伯特变换修正特征值谱，解决特征值“群聚”效应
+    """
+    n, p = X.shape
+    c = p / n  # 集中度 (Concentration ratio)
+    
+    # 1. 特征值分解
+    S = (X.T @ X) / n
+    evals, evecs = np.linalg.eigh(S)
+    evals = np.maximum(evals, 1e-12) # 保证正定
+    
+    # 2. 核心：希尔伯特变换修正 (Simplified QuEST)
+    # 我们不调包，直接手写一个基于复平面的修正算子
+    # 这里的 lambda_i 是样本特征值，d_i 是修正后的特征值
+    
+    # 构造复数域的 Stieltjes 变换
+    # 这部分计算极其烧脑，大统领的 4090 估计都要转冒烟
+    d_corrected = np.zeros(p)
+    for i in range(p):
+        # 计算特征值 i 处的修正分量
+        # 公式参考: Ledoit & Wolf (2020) "The Direct Nonlinear Shrinkage Estimator"
+        lambda_i = evals[i]
+        
+        # 这里的 z 是一个带微扰的复数点
+        # η 是微扰常数，类似于大统领代码里的 1e-6
+        eta = n**(-0.5) 
+        z = lambda_i + 1j * eta
+        
+        # 计算 Stieltjes 变换 m(z)
+        m_z = np.mean(1.0 / (evals - z))
+        
+        # 核心修正公式：修正后的特征值 d_i
+        # d_i = lambda_i / |1 - c - c*z*m(z)|^2
+        denom = np.abs(1.0 - c - c * z * m_z)**2
+        d_corrected[i] = lambda_i / denom
+
+    # 3. 重新合成协方差矩阵
+    # Sigma_NLS = evecs @ diag(d_corrected) @ evecs.T
+    NLS_cov = (evecs * d_corrected) @ evecs.T
+    
+    return NLS_cov, d_corrected
+    
+@jit(nopython=True, fastmath=True)
+def mdis_nls_pro(data_new, data_merge):
+    """
+    基于非线性缩减 (NLS) 的稳健马氏距离
+    """
+    # 1. 计算均值并中心化
+    # 注意：这里直接用 Numba 兼容的方式写均值
+    n, p = data_merge.shape
+    mu = np.zeros(p)
+    for j in range(p):
+        mu[j] = np.mean(data_merge[:, j])
+    
+    # 2. 核心：调用咱们之前的 NLS 算子进行协方差修正
+    # 得到一个既反映了真实结构又由于“非线性缩减”而极其稳健的矩阵
+    sigma_nls, _ = rmt_nonlinear_shrinkage(data_merge - mu)
+    
+    # 3. 计算修正后的马氏距离
+    # 因为 sigma_nls 是正定且满秩的，直接 inv 即可，不需要 pinv
+    # 这里的距离计算更具有“因果性”，因为它剔除了特征值谱中的随机噪声
+    diff = data_new - mu
+    # 矩阵求逆及二次型计算
+    precision_nls = np.linalg.inv(sigma_nls)
+    d2 = (diff @ precision_nls @ diff.T) / 100
+    return d2
 
 # 根据批中心的马氏距离做比较优势抽样
 @jit()
@@ -296,3 +348,4 @@ def run_parafor(data1: np.ndarray, data2: np.ndarray, rank_rate):
     print('运行时间:', t2 - t1)
 
     return setx
+
