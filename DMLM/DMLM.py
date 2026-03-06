@@ -44,7 +44,7 @@ def DMLM(data, K=10):
         # p_d(M,X)
         pdMX = LogisticRegression().fit(subsamplec[:, 2:], subsamplec[:, 1])
         n_ssc = len(subsamplec)
-        subsamplec = subsamplec[np.random.choice(np.arange(n_ssc), n)]
+        subsamplec = subsamplec[np.random.choice(np.arange(n_ssc), n,replace=False)]
         ssc1 = subsamplec[:n_ssc // 2]
         ssc2 = subsamplec[n_ssc // 2:]
         # \mu(d,M,X)
@@ -72,10 +72,11 @@ def DMLM(data, K=10):
 
     ES_all = np.array(ES_all)
     fit_effect = np.mean(ES_all)
-    var_est = np.mean(ES_all ** 2)
-    stat = fit_effect * n ** 0.5 / var_est
+    var_est = np.var(ES_all)
+    se=np.sqrt(var_est/n)
+    stat = fit_effect  / se
     p = 2 * norm.sf(np.abs(stat))
-    ci95 = 1.96 * var_est ** 0.5
+    ci95 = 1.96 * se
 
     print('DML中介效应统计检验量和p值', stat, p)
     print('Y(T,M(1-T))的效应估计结果')
@@ -100,4 +101,5 @@ data[:, 2] = data[:, 2].astype(int)
 DMLM(data, K)
 print(1)
 print(1)
+
 
