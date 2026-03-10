@@ -133,7 +133,6 @@ def rmt_nonlinear_shrinkage(X):
     # 这里的 lambda_i 是样本特征值，d_i 是修正后的特征值
     
     # 构造复数域的 Stieltjes 变换
-    # 这部分计算极其烧脑，大统领的 4090 估计都要转冒烟
     d_corrected = np.zeros(p)
     for i in range(p):
         # 计算特征值 i 处的修正分量
@@ -348,4 +347,5 @@ def run_parafor(data1: np.ndarray, data2: np.ndarray, rank_rate):
     print('运行时间:', t2 - t1)
 
     return setx
+
 
